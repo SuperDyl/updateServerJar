@@ -1,4 +1,4 @@
-from servertesting import *
+from updateserverjar import *
 
 
 def test_get_stable_mc_versions(verbose: bool = False) -> bool:
