@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from typing import List, Dict
-
+import sys
 import requests
 
 FABRIC_API = 'https://meta.fabricmc.net/v2'
@@ -58,15 +58,33 @@ def get_server_jar(mc_version: str, loader_version: str, installer_version: str)
     return response.content
 
 
-def get_latest_server_jar(allow_snapshots: bool = False):
-    try:
-        mc_version = get_mc_versions(allow_snapshots=allow_snapshots)[0]
-        loader_version = get_loader_versions(mc_version)[0]
-        installer_version = get_installer_versions()[0]
-    except Exception:
-        raise Exception('Failed to get a version number from meta.fabricmc.net')
-    return get_server_jar(mc_version, loader_version, installer_version)
+def get_latest_server_jar(file_name: str, allow_snapshots: bool = False) -> bytes:
+    mc_versions = get_mc_versions(allow_snapshots=allow_snapshots)
+    if not mc_versions:
+        raise Exception('No Minecraft versions available')
+    mc_version = mc_versions[0]
+
+    loader_versions = get_loader_versions(mc_version)
+    if not loader_versions:
+        raise Exception('No loader versions available')
+    loader_version = loader_versions[0]
+
+    installer_versions = get_installer_versions()
+    if not installer_versions:
+        raise Exception('No installer versions available')
+    installer_version = installer_versions[0]
+
+    server_jar: bytes = get_server_jar(mc_version, loader_version, installer_version)
+
+    if file_name == '-':
+        sys.stdout.buffer.write(server_jar)
+    else:
+        with open(file_name, 'wb') as file:
+            file.write(server_jar)
+
+    return server_jar
 
 
 if __name__ == '__main__':
-    get_latest_server_jar()
+    file_name: str = sys.argv[1] if len(sys.argv) > 1 else '-'
+    get_latest_server_jar(file_name)

@@ -44,7 +44,7 @@ def test_get_server_jar(mc_versions: str, loader_version: str, installer_version
 
 
 def test_get_latest_server_jar(verbose: bool = False):
-    response = get_latest_server_jar()
+    response = get_latest_server_jar('/dev/null')
 
     if verbose:
         print(f'test_get_latest_server_jar: {response[0:20]=}')
