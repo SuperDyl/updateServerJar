@@ -9,6 +9,11 @@ INSTALLER_VERSIONS = f'{FABRIC_API}/versions/installer'
 
 
 def get_mc_versions(allow_snapshots: bool = False) -> List[str]:
+    """
+    Gets Minecraft versions supported by FabricMC
+    :param allow_snapshots: When set to True, snapshot versions are included in the list
+    :return: all current Minecraft versions supported by FabricMC, sorted from most recent to oldest
+    """
     response = requests.get(GAME_VERSIONS)
     if response.status_code != 200:
         return []
@@ -22,6 +27,12 @@ def get_mc_versions(allow_snapshots: bool = False) -> List[str]:
 
 
 def get_loader_versions(mc_version: str, allow_unstable: bool = False) -> List[str]:
+    """
+    Gets FabricMC Loader versions
+    :param mc_version: Minecraft version you need the loader for
+    :param allow_unstable: Adds unstable/untested loader versions to the output
+    :return: All FabricMC Loader versions for the specified Minecraft version
+    """
     loader_versions = f'{FABRIC_API}/versions/loader/{mc_version}'
     response = requests.get(loader_versions)
     if response.status_code != 200:
@@ -36,6 +47,11 @@ def get_loader_versions(mc_version: str, allow_unstable: bool = False) -> List[s
 
 
 def get_installer_versions(allow_unstable: bool = False) -> List[str]:
+    """
+    Gets FabricMC Installer versions
+    :param allow_unstable: Adds unstable installer versions to the output
+    :return: All FabricMC installer versions
+    """
     response = requests.get(INSTALLER_VERSIONS)
     if response.status_code != 200:
         return []
@@ -49,6 +65,13 @@ def get_installer_versions(allow_unstable: bool = False) -> List[str]:
 
 
 def get_server_jar(mc_version: str, loader_version: str, installer_version: str) -> bytes:
+    """
+    Collects the bytes for the server jar of the specified version choices
+    :param mc_version:
+    :param loader_version:
+    :param installer_version:
+    :return: bytes of the specified FabricMC server jar
+    """
     # /v2/versions/loader/:game_version/:loader_version/:installer_version/server/jar
     server_jar = f'{FABRIC_API}/versions/loader/{mc_version}/{loader_version}/{installer_version}/server/jar'
     response = requests.get(server_jar)
@@ -59,6 +82,12 @@ def get_server_jar(mc_version: str, loader_version: str, installer_version: str)
 
 
 def get_latest_server_jar(file_name: str, allow_snapshots: bool = False) -> bytes:
+    """
+    Collects and either returns or saves the bytes for the most recent server jar for FabricMC
+    :param file_name: Either a valid file_name or '-'; the bytes will be written to file_name (or stdout if '-' is used)
+    :param allow_snapshots: If True, the most recent experimental version or snapshot will be collected
+    :return: bytes of the most recent FabricMC server jar
+    """
     mc_versions = get_mc_versions(allow_snapshots=allow_snapshots)
     if not mc_versions:
         raise Exception('No Minecraft versions available')
@@ -86,5 +115,5 @@ def get_latest_server_jar(file_name: str, allow_snapshots: bool = False) -> byte
 
 
 if __name__ == '__main__':
-    file_name: str = sys.argv[1] if len(sys.argv) > 1 else '-'
-    get_latest_server_jar(file_name)
+    output_file: str = sys.argv[1] if len(sys.argv) > 1 else '-'
+    get_latest_server_jar(output_file)
