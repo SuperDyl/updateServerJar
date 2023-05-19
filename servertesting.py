@@ -1,9 +1,11 @@
 #!/usr/bin/python3
+from typing import List, Dict
+
 import requests
-from typing import List, Dict, Optional
 
 FABRIC_API = 'https://meta.fabricmc.net/v2'
 GAME_VERSIONS = f'{FABRIC_API}/versions/game'
+INSTALLER_VERSIONS = f'{FABRIC_API}/versions/installer'
 
 
 def get_mc_versions(allow_snapshots: bool = False) -> List[str]:
@@ -19,43 +21,52 @@ def get_mc_versions(allow_snapshots: bool = False) -> List[str]:
     ]
 
 
-def test_get_stable_mc_versions(verbose: bool = False) -> bool:
-    responses_stable = get_mc_versions()
-    responses_unstable = get_mc_versions(allow_snapshots=True)
+def get_loader_versions(mc_version: str, allow_unstable: bool = False) -> List[str]:
+    loader_versions = f'{FABRIC_API}/versions/loader/{mc_version}'
+    response = requests.get(loader_versions)
+    if response.status_code != 200:
+        return []
 
-    if verbose:
-        print(f'test_get_mc_versions: {responses_stable=}')
-        print(f'test_get_mc_versions: {responses_unstable=}')
+    json_data: List[Dict] = response.json()
+    return [
+        item['loader']['version']
+        for item in json_data
+        if (allow_unstable or item['loader']['stable'])
+    ]
 
-    return bool(responses_stable and responses_unstable)
+
+def get_installer_versions(allow_unstable: bool = False) -> List[str]:
+    response = requests.get(INSTALLER_VERSIONS)
+    if response.status_code != 200:
+        return []
+
+    json_data: List[Dict] = response.json()
+    return [
+        item['version']
+        for item in json_data
+        if (allow_unstable or item['stable'])
+    ]
 
 
-def get_server_jar(mc_version: str) -> Optional[str]:
-    server_jar = f'{FABRIC_API}/versions/loader/{mc_version}/server'
+def get_server_jar(mc_version: str, loader_version: str, installer_version: str) -> bytes:
+    # /v2/versions/loader/:game_version/:loader_version/:installer_version/server/jar
+    server_jar = f'{FABRIC_API}/versions/loader/{mc_version}/{loader_version}/{installer_version}/server/jar'
     response = requests.get(server_jar)
     if response.status_code != 200:
-        return None
-    json_data = response.json()
-    return json_data['downloads']['server']['url']
+        raise Exception('Failed to get server jar!')
+
+    return response.content
 
 
-def test_get_server_jar(mc_versions: str, verbose: bool = False):
-    response = get_server_jar(mc_versions)
-
-    if verbose:
-        print(f'test_get_server_jar: {response=}')
-
-    return bool(response)
-
-
-def test(verbose: bool) -> bool:
-    result: bool = bool(
-        test_get_stable_mc_versions(verbose=verbose)
-        and test_get_server_jar('1.19.4', verbose=verbose)
-    )
-
-    print(f'Test result was {result}')
-    return result
+def get_latest_server_jar(allow_snapshots: bool = False):
+    try:
+        mc_version = get_mc_versions(allow_snapshots=allow_snapshots)[0]
+        loader_version = get_loader_versions(mc_version)[0]
+        installer_version = get_installer_versions()[0]
+    except Exception:
+        raise Exception('Failed to get a version number from meta.fabricmc.net')
+    return get_server_jar(mc_version, loader_version, installer_version)
 
 
-test(verbose=True)
+if __name__ == '__main__':
+    get_latest_server_jar()
