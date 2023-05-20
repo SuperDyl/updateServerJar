@@ -73,6 +73,5 @@ instead of `Test result was False` or `Test result was Exception`
 # Missing features and bugs
 
 * There is no testing for file downloading or command line arguments
-* No -h or --help options are available
 * If a test fails, all subsequent tests are skipped
 * No command line option to have a non-verbose test run

@@ -114,7 +114,22 @@ def get_latest_server_jar(allow_snapshots: bool = False) -> bytes:
 
 
 if __name__ == '__main__':
-    output_file: str = sys.argv[1] if len(sys.argv) > 1 else '-'
+    def print_usage():
+        print("Usage: python3 -m updateserverjar [file_name | '-' | '-h' | '--help'] [minecraft_version | '']")
+        print("\tfile_name: name to save the jar as")
+        print("\t'-': outputs the file bytes to stdout instead of a file (so it can be piped using '>' or '|'")
+        print("\t'-h' OR '--help': prints this usage guide")
+        print("\tIf minecraft_version is omitted, the latest is used instead")
+
+
+    if len(sys.argv) <= 1:
+        print_usage()
+        sys.exit()
+
+    output_file: str = sys.argv[1]
+    if output_file in ('-h', '--help'):
+        print_usage()
+        sys.exit()
 
     file_bytes: bytes
 
