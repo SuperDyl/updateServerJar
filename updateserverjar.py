@@ -81,10 +81,28 @@ def get_server_jar(mc_version: str, loader_version: str, installer_version: str)
     return response.content
 
 
-def get_latest_server_jar(file_name: str, allow_snapshots: bool = False) -> bytes:
+def get_mc_version_server_jar(mc_version: str) -> bytes:
     """
-    Collects and either returns or saves the bytes for the most recent server jar for FabricMC
-    :param file_name: Either a valid file_name or '-'; the bytes will be written to file_name (or stdout if '-' is used)
+    Returns the bytes for the most recent server jar for the specified version of Minecraft.
+    :param mc_version: Minecraft version to use for the server jar
+    :return: bytes of the most recent FabricMC server jar for the Minecraft version
+    """
+    loader_versions = get_loader_versions(mc_version)
+    if not loader_versions:
+        raise Exception(f'No loader versions available for {mc_version=}')
+    loader_version = loader_versions[0]
+
+    installer_versions = get_installer_versions()
+    if not installer_versions:
+        raise Exception(f'No installer versions available for {mc_version=}')
+    installer_version = installer_versions[0]
+
+    return get_server_jar(mc_version, loader_version, installer_version)
+
+
+def get_latest_server_jar(allow_snapshots: bool = False) -> bytes:
+    """
+    Returns the bytes for the most recent server jar for FabricMC
     :param allow_snapshots: If True, the most recent experimental version or snapshot will be collected
     :return: bytes of the most recent FabricMC server jar
     """
@@ -92,28 +110,22 @@ def get_latest_server_jar(file_name: str, allow_snapshots: bool = False) -> byte
     if not mc_versions:
         raise Exception('No Minecraft versions available')
     mc_version = mc_versions[0]
-
-    loader_versions = get_loader_versions(mc_version)
-    if not loader_versions:
-        raise Exception('No loader versions available')
-    loader_version = loader_versions[0]
-
-    installer_versions = get_installer_versions()
-    if not installer_versions:
-        raise Exception('No installer versions available')
-    installer_version = installer_versions[0]
-
-    server_jar: bytes = get_server_jar(mc_version, loader_version, installer_version)
-
-    if file_name == '-':
-        sys.stdout.buffer.write(server_jar)
-    else:
-        with open(file_name, 'wb') as file:
-            file.write(server_jar)
-
-    return server_jar
+    return get_mc_version_server_jar(mc_version)
 
 
 if __name__ == '__main__':
     output_file: str = sys.argv[1] if len(sys.argv) > 1 else '-'
-    get_latest_server_jar(output_file)
+
+    file_bytes: bytes
+
+    if len(sys.argv) > 2:
+        minecraft_version: str = sys.argv[2]
+        file_bytes = get_mc_version_server_jar(minecraft_version)
+    else:
+        file_bytes = get_latest_server_jar()
+
+    if output_file == '-':
+        sys.stdout.buffer.write(file_bytes)
+    else:
+        with open(output_file, 'wb') as file:
+            file.write(file_bytes)

@@ -36,8 +36,8 @@ def test_get_installer_versions(verbose: bool = False) -> bool:
     return bool(response_stable)
 
 
-def test_get_server_jar(mc_versions: str, loader_version: str, installer_version: str, verbose: bool = False):
-    response = get_server_jar(mc_versions, loader_version, installer_version)
+def test_get_server_jar(mc_version: str, loader_version: str, installer_version: str, verbose: bool = False):
+    response = get_server_jar(mc_version, loader_version, installer_version)
 
     if verbose:
         print(f'test_get_server_jar: {response[0:LIMIT]=}')
@@ -45,8 +45,17 @@ def test_get_server_jar(mc_versions: str, loader_version: str, installer_version
     return bool(response)
 
 
+def test_get_mc_version_server_jar(mc_version: str, verbose: bool = False):
+    response = get_mc_version_server_jar(mc_version)
+
+    if verbose:
+        print(f'test_get_mc_version_server_jar: {response[0:LIMIT]=}')
+
+    return bool(response)
+
+
 def test_get_latest_server_jar(verbose: bool = False):
-    response = get_latest_server_jar('/dev/null')
+    response = get_latest_server_jar()
 
     if verbose:
         print(f'test_get_latest_server_jar: {response[0:LIMIT]=}')
@@ -72,6 +81,7 @@ def test(verbose: bool) -> bool:
             and test_get_loader_versions(mc_version, verbose=verbose)
             and test_get_installer_versions(verbose=verbose)
             and test_get_server_jar(mc_version, loader_version, installer_version, verbose=verbose)
+            and test_get_mc_version_server_jar(mc_version, verbose=verbose)
             and test_get_latest_server_jar(verbose=verbose)
         )
     except Exception as e:

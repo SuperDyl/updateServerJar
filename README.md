@@ -15,7 +15,7 @@ It has been tested to in Python3.8, but it may not work in other Python versions
 # Usage (Command line)
 
 ```
-python3 -m updateserver [server_filename | '-']
+python3 -m updateserver [server_filename | '-'] [mc_version | '']
 ```
 
 Run the `updateserverjar.py` file and save to the file `server.jar`
@@ -24,13 +24,10 @@ Run the `updateserverjar.py` file and save to the file `server.jar`
 python3 -m updateserverjar server.jar
 ```
 
-The JAR can instead be piped to stdout by either using `-` as the filename or omitting the filename
+The JAR can instead be piped to stdout by using `-` as the filename
 
 ```
 python3 -m updateserverjar - > server.jar
-# OR
-python3 -m updateserverjar > server.jar
-# Both lines are equivalent
 ```
 
 # Usage (Module)
@@ -43,7 +40,9 @@ Generally:
 
 `get_server_jar()` gets the server_jar for the specified versions provided
 
-`get_latest_server_jar()` gets the most recent jar. This expects a file_name (or `-` to output to stdout)
+`get_mc_version_server_jar()` gets the latest server_jar for the specified Minecraft version
+
+`get_latest_server_jar()` gets the most recent jar
 
 # Testing
 
@@ -63,6 +62,7 @@ test_get_loader_versions,unstable: response_unstable[0:LIMIT]=['0.14.19', '0.14.
 test_get_installer_versions,stable: response_stable=['0.11.2']
 test_get_installer_versions,unstable: response_unstable[0:LIMIT]=['0.11.2', '0.11.1', '0.11.0', '0.10.2', '0.10.1', '0.10.0', '0.9.1', '0.9.0', '0.8.3', '0.8.2', '0.8.1', '0.8.0', '0.7.4', '0.7.3', '0.7.2', '0.7.1', '0.6.1.51', '0.6.1.50', '0.6.1.49', '0.6.1.48']
 test_get_server_jar: response[0:LIMIT]=b'PK\x03\x04\n\x00\x00\x08\x08\x00\xaaIaV\x00\x00\x00\x00\x02\x00'
+test_get_mc_version_server_jar: response[0:LIMIT]=b'PK\x03\x04\n\x00\x00\x08\x08\x00\xaaIaV\x00\x00\x00\x00\x02\x00'
 test_get_latest_server_jar: response[0:LIMIT]=b'PK\x03\x04\n\x00\x00\x08\x08\x00\xaaIaV\x00\x00\x00\x00\x02\x00'
 Test result was True
 ```
@@ -72,8 +72,6 @@ instead of `Test result was False` or `Test result was Exception`
 
 # Missing features and bugs
 
-* Cannot download snapshot versions from the command line
-* No helper function to more easily download other Minecraft versions
 * There is no testing for file downloading or command line arguments
 * No -h or --help options are available
 * If a test fails, all subsequent tests are skipped
